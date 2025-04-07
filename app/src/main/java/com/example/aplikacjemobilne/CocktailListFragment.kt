@@ -12,7 +12,11 @@ import androidx.fragment.app.Fragment
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
+import android.util.Log
+
 class CocktailListFragment : Fragment() {
+    private val TAG = "CocktailListFragment"
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -46,10 +50,18 @@ class CocktailListFragment : Fragment() {
 
         listView.setOnItemClickListener { _, _, position, _ ->
             val cocktail = cocktailList[position]
+
+            // Logujemy, aby sprawdzić, który koktajl został wybrany
+            Log.d(TAG, "Selected cocktail: ${cocktail.name}")
+
             val intent = Intent(requireContext(), DetailsActivity::class.java)
             intent.putExtra("name", cocktail.name)
             intent.putExtra("ingredients", cocktail.ingredients)
             intent.putExtra("recipe", cocktail.recipe)
+
+            // Logujemy dane, które są przekazywane do DetailsActivity
+            Log.d(TAG, "Sending to DetailsActivity: Name = ${cocktail.name}, Ingredients = ${cocktail.ingredients}, Recipe = ${cocktail.recipe}")
+
             startActivity(intent)
         }
 
