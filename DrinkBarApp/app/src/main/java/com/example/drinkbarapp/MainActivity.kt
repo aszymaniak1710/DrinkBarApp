@@ -21,12 +21,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.drinkbarapp.ui.theme.DrinkBarAppTheme
 
@@ -39,6 +35,7 @@ class MainActivity : ComponentActivity() {
     )
 
     private val cocktailViewModel: CocktailViewModel by viewModels()
+    private val timerViewModel: TimerViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,7 +44,8 @@ class MainActivity : ComponentActivity() {
             DrinkBarAppTheme {
                 CocktailListScreen(
                     cocktails = cocktailList,
-                    cocktailViewModel = cocktailViewModel) { selectedCocktail ->
+                    cocktailViewModel = cocktailViewModel,
+                    timerViewModel = timerViewModel) { selectedCocktail ->
                     val intent = Intent(this, DetailActivity::class.java)
                     intent.putExtra("cocktail_id", selectedCocktail.id)
                     intent.putExtra("cocktail_name", selectedCocktail.name)
@@ -71,6 +69,7 @@ data class Cocktail(
 fun CocktailListScreen(
     cocktails: List<Cocktail>,
     cocktailViewModel: CocktailViewModel,
+    timerViewModel: TimerViewModel,
     onCocktailSelected: (Cocktail) -> Unit
 ) {
     val configuration = LocalConfiguration.current
@@ -92,7 +91,7 @@ fun CocktailListScreen(
                 modifier = Modifier.weight(1f)
             )
             selectedCocktail?.let {
-                CocktailDetail(cocktail = it, modifier = Modifier.weight(1f))
+                CocktailDetail(cocktail = it, modifier = Modifier.weight(1f), timerViewModel = timerViewModel)
             } ?: run {
                 Box(modifier = Modifier.weight(1f)) {
                     Text(text = "Wybierz koktajl", style = MaterialTheme.typography.bodyLarge)
