@@ -54,4 +54,9 @@ class TimerViewModel : ViewModel() {
         val seconds = (millis / 1000) % 60
         return String.format("%02d:%02d", minutes, seconds)
     }
+
+    fun setInitialTime(seconds: Long) {
+        this.timeLeftInMillis = seconds * 1000
+        _timeLeft.value = formatTime(timeLeftInMillis)
+    }
 }

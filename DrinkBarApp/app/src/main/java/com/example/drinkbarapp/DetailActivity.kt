@@ -13,13 +13,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.example.drinkbarapp.ui.theme.DrinkBarAppTheme
 
@@ -64,6 +75,7 @@ fun CocktailDetail(cocktail: Cocktail, modifier: Modifier = Modifier, timerViewM
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = "Przepis:", style = MaterialTheme.typography.titleMedium)
         Text(text = cocktail.recipe, style = MaterialTheme.typography.bodyLarge)
+        Spacer(modifier = Modifier.height(16.dp))
         MyTimer(viewModel = timerViewModel)
     }
 }
@@ -73,22 +85,64 @@ fun MyTimer(viewModel: TimerViewModel) {
 
     val timeLeft by viewModel.timeLeft.collectAsState()
     val isRunning by viewModel.isRunning.collectAsState()
+    var inputTime by remember { mutableStateOf("") }
 
     Column {
         Text(text = "Pozostały czas: $timeLeft")
 
         Row {
-            Button(onClick = { viewModel.startTimer() }, enabled = !isRunning) {
-                Text("Start")
-            }
+            IconButtonWithAction(
+                onClick = { viewModel.startTimer() },
+                icon = Icons.Default.PlayArrow,
+                contentDescription = "Start",
+                enabled = !isRunning
+            )
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { viewModel.stopTimer() }, enabled = isRunning) {
-                Text("Stop")
-            }
+            IconButtonWithAction(
+                onClick = { viewModel.stopTimer() },
+                icon = Icons.Default.Close,
+                contentDescription = "Stop",
+                enabled = isRunning
+            )
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { viewModel.resetTimer() }) {
-                Text("Reset")
-            }
+            IconButtonWithAction(
+                onClick = { viewModel.resetTimer() },
+                icon = Icons.Default.Refresh,
+                contentDescription = "Refresh"
+            )
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        OutlinedTextField(
+            value = inputTime,
+            onValueChange = { inputTime = it },
+            label = {Text("Ustaw czas (sekundy)")},
+            singleLine = true,
+            enabled = !isRunning
+        )
+        Button(
+            onClick = {
+                val time = inputTime.toLongOrNull()
+                if(time != null && time > 0){
+
+                    viewModel.setInitialTime(time)
+                }
+            },
+            enabled = !isRunning
+        ){
+            Text("Ustaw czas")
         }
     }
 }
+
+@Composable
+fun IconButtonWithAction(
+    onClick : () -> Unit,
+    icon: ImageVector,
+    contentDescription: String,
+    enabled: Boolean = true
+    ){
+    Button(onClick = onClick, enabled = enabled){
+        Icon(imageVector = icon, contentDescription = contentDescription)
+    }
+}
+
