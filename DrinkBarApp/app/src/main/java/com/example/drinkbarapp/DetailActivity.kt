@@ -6,6 +6,9 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +18,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
@@ -86,6 +91,7 @@ fun MyTimer(viewModel: TimerViewModel) {
     val timeLeft by viewModel.timeLeft.collectAsState()
     val isRunning by viewModel.isRunning.collectAsState()
     var inputTime by remember { mutableStateOf("") }
+    var expanded by remember { mutableStateOf(false) }
 
     Column {
         Text(text = "Pozostały czas: $timeLeft")
@@ -112,24 +118,41 @@ fun MyTimer(viewModel: TimerViewModel) {
             )
         }
         Spacer(modifier = Modifier.width(8.dp))
-        OutlinedTextField(
-            value = inputTime,
-            onValueChange = { inputTime = it },
-            label = {Text("Ustaw czas (sekundy)")},
-            singleLine = true,
-            enabled = !isRunning
-        )
-        Button(
-            onClick = {
-                val time = inputTime.toLongOrNull()
-                if(time != null && time > 0){
-
-                    viewModel.setInitialTime(time)
-                }
-            },
-            enabled = !isRunning
+        IconButton(
+            onClick = {expanded = !expanded},
         ){
-            Text("Ustaw czas")
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = "Rozwiń/zwiń ustawienia",
+                )
+        }
+
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            Column {
+                OutlinedTextField(
+                    value = inputTime,
+                    onValueChange = { inputTime = it },
+                    label = { Text("Ustaw czas (sekundy)") },
+                    singleLine = true,
+                    enabled = !isRunning
+                )
+                Button(
+                    onClick = {
+                        val time = inputTime.toLongOrNull()
+                        if (time != null && time > 0) {
+
+                            viewModel.setInitialTime(time)
+                        }
+                    },
+                    enabled = !isRunning
+                ) {
+                    Text("Ustaw czas")
+                }
+            }
         }
     }
 }
