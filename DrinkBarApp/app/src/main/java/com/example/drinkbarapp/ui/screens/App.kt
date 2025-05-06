@@ -3,6 +3,7 @@ package com.example.drinkbarapp.ui.screens
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -22,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -33,6 +35,8 @@ import com.example.drinkbarapp.ui.components.CocktailScreen
 import com.example.drinkbarapp.viewModel.CocktailViewModel
 import com.example.drinkbarapp.viewModel.TimerViewModel
 import kotlinx.coroutines.launch
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.material3.TopAppBarDefaults
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,11 +47,12 @@ fun App(
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
+    val pagerState = rememberPagerState(pageCount = { 3 })
 
     val drawerItems = listOf(
-        "Start" to "main",
-        "Short drinks" to "short",
-        "Long drinks" to "long"
+        "Start" to 0,
+        "Short drinks" to 1,
+        "Long drinks" to 2
     )
 
     ModalNavigationDrawer(
@@ -59,25 +64,32 @@ fun App(
                     modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.headlineSmall
                 )
-                drawerItems.forEach { (label, route) ->
+                drawerItems.forEach { (label, pageIndex) ->
                     NavigationDrawerItem(
                         label = { Text(label) },
-                        selected = false,
+                        selected = pagerState.currentPage == pageIndex,
                         onClick = {
-                            coroutineScope.launch { drawerState.close() }
-                            if (route == "main") {
-                                navController.navigate("main") {
-                                    popUpTo("main") { inclusive = true }
-                                }
+                            coroutineScope.launch {
+                                drawerState.close()
+                                pagerState.animateScrollToPage(pageIndex)
                             }
-                            TODO()
                         }
                     )
                 }
             }
         }
     ) {
+        val currentBackStackEntry = navController.currentBackStackEntryAsState().value
+        val currentRoute = currentBackStackEntry?.destination?.route
+        val isDetailScreen = currentRoute?.startsWith("cocktail/") == true
+
+        val scrollBehavior = if (isDetailScreen)
+            TopAppBarDefaults.enterAlwaysScrollBehavior()
+        else
+            null
+
         Scaffold(
+            modifier = if (scrollBehavior != null) Modifier.nestedScroll(scrollBehavior.nestedScrollConnection) else Modifier,
             topBar = {
                 TopAppBar(
                     title = { Text("Drink Bar") },
@@ -95,20 +107,22 @@ fun App(
                         IconButton(onClick = { TODO() }) {
                             Icon(Icons.Default.MoreVert, contentDescription = "Więcej opcji")
                         }
-                    }
+                    },
+                    scrollBehavior = scrollBehavior
                 )
             }
         ) { innerPadding ->
             NavHost(
                 navController = navController,
                 startDestination = "main",
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding),
             ) {
                 composable("main") {
                     MainPagerScreen(
                         navController = navController,
                         cocktailViewModel = cocktailViewModel,
-                        timerViewModel = timerViewModel
+                        timerViewModel = timerViewModel,
+                        pagerState = pagerState
                     )
                 }
                 composable("cocktail/{id}") { backStackEntry ->
@@ -132,10 +146,9 @@ fun App(
 fun MainPagerScreen(
     navController: NavController,
     cocktailViewModel: CocktailViewModel,
-    timerViewModel: TimerViewModel
+    timerViewModel: TimerViewModel,
+    pagerState: PagerState
 ) {
-    val pagerState = rememberPagerState(pageCount = { 3 })
-
     HorizontalPager(
         state = pagerState,
         modifier = Modifier.fillMaxSize()
