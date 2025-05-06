@@ -41,6 +41,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.drinkbarapp.data.FakeCocktailRepository
 import com.example.drinkbarapp.viewModel.TimerViewModel
 import com.example.drinkbarapp.model.Cocktail
 
@@ -49,7 +52,6 @@ import com.example.drinkbarapp.model.Cocktail
 @Composable
 fun CocktailScreen(
     category: String,
-    cocktails: List<Cocktail>,
     cocktailViewModel: CocktailViewModel,
     timerViewModel: TimerViewModel,
     onCocktailSelected: (Cocktail) -> Unit
@@ -60,13 +62,17 @@ fun CocktailScreen(
     val selectedCocktailState = cocktailViewModel.selectedCocktail.collectAsState()
     val selectedCocktail = selectedCocktailState.value
 
+    val navController = rememberNavController()
+
     if (screenWidthDp < 600) {
-        CocktailList(category = category, cocktails = cocktails, onCocktailSelected = onCocktailSelected)
+        CocktailList(
+            category = category,
+            onCocktailSelected = onCocktailSelected
+        )
     } else {
         Row(Modifier.fillMaxSize()) {
             CocktailList(
                 category = category,
-                cocktails = cocktails,
                 onCocktailSelected = { cocktail ->
                     cocktailViewModel.selectCocktail(cocktail)
                 },
@@ -86,16 +92,16 @@ fun CocktailScreen(
 @Composable
 fun CocktailList(
     category: String,
-    cocktails: List<Cocktail>,
     onCocktailSelected: (Cocktail) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val cocktailsToDisplay = FakeCocktailRepository.getCocktailsByCategory(category)
     LazyVerticalGrid(
         modifier = modifier.fillMaxSize(),
         columns = GridCells.Adaptive(minSize = 150.dp)
     ) {
-        items(cocktails.size) { index ->
-            val cocktail = cocktails[index]
+        items(cocktailsToDisplay.size) { index ->
+            val cocktail = cocktailsToDisplay[index]
             Card(
                 modifier = Modifier
                     .padding(8.dp)

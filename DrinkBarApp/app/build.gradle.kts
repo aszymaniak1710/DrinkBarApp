@@ -40,6 +40,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.navigation.compose)
     implementation(libs.accompanist.pager)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.core.ktx)
