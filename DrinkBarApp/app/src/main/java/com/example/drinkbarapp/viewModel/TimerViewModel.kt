@@ -1,11 +1,7 @@
-package com.example.drinkbarapp
+package com.example.drinkbarapp.viewModel
 
 import android.os.CountDownTimer
-import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 

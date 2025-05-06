@@ -1,0 +1,8 @@
+package com.example.drinkbarapp.model
+
+data class Cocktail(
+    val id: Int,
+    val name: String,
+    val ingredients: String,
+    val recipe: String
+)

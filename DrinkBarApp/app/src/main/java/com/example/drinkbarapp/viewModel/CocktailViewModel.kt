@@ -1,5 +1,7 @@
+package com.example.drinkbarapp.viewModel
+
 import androidx.lifecycle.ViewModel
-import com.example.drinkbarapp.Cocktail
+import com.example.drinkbarapp.model.Cocktail
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
