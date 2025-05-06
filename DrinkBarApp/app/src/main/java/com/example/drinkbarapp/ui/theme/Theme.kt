@@ -10,6 +10,20 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.compose.rememberNavController
+
+import androidx.compose.material3.*
+import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+
+import androidx.activity.*
+import androidx.activity.compose.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
+import androidx.compose.ui.graphics.*
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -56,3 +70,30 @@ fun DrinkBarAppTheme(
         content = content
     )
 }
+
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun AppScaffold() {
+//    val navController = rememberNavController()
+//    Scaffold(
+//        topBar = {
+//            TopAppBar(title = { Text("Drink Bar") })
+//        }
+//    ) { padding ->
+//        NavHost(
+//            navController = navController,
+//            startDestination = "home",
+//            modifier = Modifier.padding(padding)
+//        ) {
+//            composable("home") { HomeScreen(navController) }
+//            composable("category/{id}") { backStackEntry ->
+//                val id = backStackEntry.arguments?.getString("id") ?: ""
+//                CategoryScreen(navController, id)
+//            }
+//            composable("cocktail/{id}") { backStackEntry ->
+//                val id = backStackEntry.arguments?.getString("id") ?: ""
+//                CocktailDetailScreen(navController, id)
+//            }
+//        }
+//    }
+//}

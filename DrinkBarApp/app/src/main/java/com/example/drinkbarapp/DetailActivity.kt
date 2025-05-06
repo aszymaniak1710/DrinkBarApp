@@ -22,15 +22,15 @@ class DetailActivity : ComponentActivity() {
 
         setContent {
             DrinkBarAppTheme {
-                CocktailDetail(
-                    cocktail = Cocktail(
-                        id = 0,
-                        name = cocktailName,
-                        ingredients = cocktailIngredients,
-                        recipe = cocktailRecipe
-                    ),
-                    timerViewModel = timerViewModel
-                )
+//                CocktailDetail(
+//                    cocktail = Cocktail(
+//                        id = 0,
+//                        name = cocktailName,
+//                        ingredients = cocktailIngredients,
+//                        recipe = cocktailRecipe
+//                    ),
+//                    timerViewModel = timerViewModel
+//                )
             }
         }
     }

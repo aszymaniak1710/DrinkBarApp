@@ -1,5 +1,6 @@
 package com.example.drinkbarapp.ui.components
 
+import android.annotation.SuppressLint
 import com.example.drinkbarapp.viewModel.CocktailViewModel
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -15,6 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -42,8 +45,10 @@ import com.example.drinkbarapp.viewModel.TimerViewModel
 import com.example.drinkbarapp.model.Cocktail
 
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
-fun CocktailListScreen(
+fun CocktailScreen(
+    category: String,
     cocktails: List<Cocktail>,
     cocktailViewModel: CocktailViewModel,
     timerViewModel: TimerViewModel,
@@ -56,12 +61,11 @@ fun CocktailListScreen(
     val selectedCocktail = selectedCocktailState.value
 
     if (screenWidthDp < 600) {
-        // Telefon -> tylko lista
-        CocktailList(cocktails = cocktails, onCocktailSelected = onCocktailSelected)
+        CocktailList(category = category, cocktails = cocktails, onCocktailSelected = onCocktailSelected)
     } else {
-        // Tablet -> lista + szczegóły
         Row(Modifier.fillMaxSize()) {
             CocktailList(
+                category = category,
                 cocktails = cocktails,
                 onCocktailSelected = { cocktail ->
                     cocktailViewModel.selectCocktail(cocktail)
@@ -81,11 +85,15 @@ fun CocktailListScreen(
 
 @Composable
 fun CocktailList(
+    category: String,
     cocktails: List<Cocktail>,
     onCocktailSelected: (Cocktail) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(modifier = modifier.fillMaxSize()) {
+    LazyVerticalGrid(
+        modifier = modifier.fillMaxSize(),
+        columns = GridCells.Adaptive(minSize = 150.dp)
+    ) {
         items(cocktails.size) { index ->
             val cocktail = cocktails[index]
             Card(
