@@ -130,6 +130,7 @@ fun CocktailList(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CocktailDetailScaffold(
+    displayBackButton: Boolean,
     cocktail: Cocktail,
     timerViewModel: TimerViewModel,
     modifier: Modifier = Modifier,
@@ -164,8 +165,10 @@ fun CocktailDetailScaffold(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Wróć", tint = Color.Black)
+                    if (displayBackButton){
+                        IconButton(onClick = onBackClick) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Wróć", tint = Color.Black)
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),

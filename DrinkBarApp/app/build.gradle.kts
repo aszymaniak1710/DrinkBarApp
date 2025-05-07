@@ -40,6 +40,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.material3.window.size.class1)
     implementation(libs.navigation.compose)
     implementation(libs.accompanist.pager)
     implementation(libs.androidx.navigation.compose)

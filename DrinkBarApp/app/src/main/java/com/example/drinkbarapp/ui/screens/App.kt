@@ -1,5 +1,6 @@
 package com.example.drinkbarapp.ui.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -35,7 +36,6 @@ import com.example.drinkbarapp.data.FakeCocktailRepository
 import com.example.drinkbarapp.model.Cocktail
 import com.example.drinkbarapp.ui.components.CocktailDetailScaffold
 import com.example.drinkbarapp.ui.components.CocktailList
-import com.example.drinkbarapp.ui.components.CocktailScreen
 import com.example.drinkbarapp.viewModel.CocktailViewModel
 import com.example.drinkbarapp.viewModel.TimerViewModel
 import kotlinx.coroutines.launch
@@ -54,7 +54,7 @@ fun App(
                 startDestination = "main"
             ) {
                 composable("main") {
-                    PagerWithDrawerScreen(
+                    MainScreen(
                         navController = navController,
                         cocktailViewModel = cocktailViewModel,
                         timerViewModel = timerViewModel
@@ -65,6 +65,7 @@ fun App(
                     val cocktail = id?.let { FakeCocktailRepository.getCocktailDetails(it) }
                     if (cocktail != null) {
                         CocktailDetailScaffold(
+                            displayBackButton = true,
                             cocktail = cocktail,
                             timerViewModel = timerViewModel,
                             onBackClick = { navController.popBackStack() }
@@ -76,9 +77,10 @@ fun App(
             }
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PagerWithDrawerScreen(
+fun MainScreen(
     navController: NavController,
     cocktailViewModel: CocktailViewModel,
     timerViewModel: TimerViewModel
@@ -88,12 +90,14 @@ fun PagerWithDrawerScreen(
     val coroutineScope = rememberCoroutineScope()
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp
+    val screenHeightDp = configuration.screenHeightDp
 
-    val isTablet = screenWidthDp > 600
+    val isTablet = screenWidthDp + screenHeightDp > 1500
+
     val drawerItems = listOf(
-        "Start" to 0,
-        "Short drinks" to 1,
-        "Long drinks" to 2
+        "O aplikacji" to 0,
+        "Szybkie drinki" to 1,
+        "Dłuższe w przygotowaniu drinki" to 2
     )
 
     ModalNavigationDrawer(
@@ -142,8 +146,9 @@ fun PagerWithDrawerScreen(
                 )
             }
         ) { innerPadding ->
-            var selectedCocktail by remember { mutableStateOf<Cocktail?>(null) }
-            if (!isTablet)
+            val selectedCocktail by cocktailViewModel.selectedCocktail.collectAsState()
+
+            if (!isTablet) {
                 HorizontalPager(
                     state = pagerState,
                     modifier = Modifier.padding(innerPadding)
@@ -151,25 +156,23 @@ fun PagerWithDrawerScreen(
                     when (page) {
                         0 -> Text("Strona początkowa", modifier = Modifier.padding(32.dp))
                         1 -> {
-                            CocktailScreen(
+                            CocktailList(
                                 category = "Szybkie",
-                                cocktailViewModel = cocktailViewModel,
-                                timerViewModel = timerViewModel,
                                 onCocktailSelected = { cocktail ->
                                     navController.navigate("cocktail/${cocktail.id}")
                                 }
                             )
                         }
-                        2 -> CocktailScreen(
+
+                        2 -> CocktailList(
                             category = "Długie",
-                            cocktailViewModel = cocktailViewModel,
-                            timerViewModel = timerViewModel,
                             onCocktailSelected = { cocktail ->
                                 navController.navigate("cocktail/${cocktail.id}")
                             }
                         )
                     }
                 }
+            }
             else {
                 Row(modifier = Modifier
                     .padding(innerPadding)
@@ -202,22 +205,21 @@ fun PagerWithDrawerScreen(
                             )
                         }
                     }
-
-
-
-                        CocktailList(
-                            onCocktailSelected = { cocktail ->
-                                cocktailViewModel.selectCocktail(cocktail)
-                            },
-                            modifier = Modifier.weight(1f)
+                    selectedCocktail?.let {
+                        CocktailDetailScaffold(
+                            displayBackButton = false,
+                            cocktail = it,
+                            modifier = Modifier.weight(1f),
+                            timerViewModel = timerViewModel
                         )
-                        selectedCocktail?.let {
-                            CocktailDetailScaffold(cocktail = selectedCocktail, modifier = Modifier.weight(1f), timerViewModel = timerViewModel)
-                        } ?: run {
-                            Box(modifier = Modifier.weight(1f)) {
-                                Text(text = "Wybierz koktajl", style = MaterialTheme.typography.bodyLarge)
-                            }
+                    } ?: run {
+                        Box(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Wybierz koktajl",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
                         }
+                    }
 
 
                 }
