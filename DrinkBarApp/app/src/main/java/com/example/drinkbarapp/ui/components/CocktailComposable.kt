@@ -15,10 +15,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -26,11 +29,15 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -39,9 +46,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.drinkbarapp.data.FakeCocktailRepository
 import com.example.drinkbarapp.viewModel.TimerViewModel
@@ -79,7 +86,7 @@ fun CocktailScreen(
                 modifier = Modifier.weight(1f)
             )
             selectedCocktail?.let {
-                CocktailDetail(cocktail = selectedCocktail, modifier = Modifier.weight(1f), timerViewModel = timerViewModel)
+                CocktailDetailScaffold(cocktail = selectedCocktail, modifier = Modifier.weight(1f), timerViewModel = timerViewModel)
             } ?: run {
                 Box(modifier = Modifier.weight(1f)) {
                     Text(text = "Wybierz koktajl", style = MaterialTheme.typography.bodyLarge)
@@ -116,24 +123,48 @@ fun CocktailList(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CocktailDetail(cocktail: Cocktail, modifier: Modifier = Modifier, timerViewModel : TimerViewModel) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Text(text = cocktail.name, style = MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Składniki:", style = MaterialTheme.typography.titleMedium)
-        Text(text = cocktail.ingredients, style = MaterialTheme.typography.bodyLarge)
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Przepis:", style = MaterialTheme.typography.titleMedium)
-        Text(text = cocktail.recipe, style = MaterialTheme.typography.bodyLarge)
-        Spacer(modifier = Modifier.height(16.dp))
-        MyTimer(viewModel = timerViewModel)
+fun CocktailDetailScaffold(
+    cocktail: Cocktail,
+    timerViewModel: TimerViewModel,
+    modifier: Modifier = Modifier,
+    onBackClick: () -> Unit = {}
+) {
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
+    Scaffold(
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            TopAppBar(
+                title = { Text(cocktail.name) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Wróć")
+                    }
+                },
+                scrollBehavior = scrollBehavior
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Składniki:", style = MaterialTheme.typography.titleMedium)
+            Text(text = cocktail.ingredients, style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = "Przepis:", style = MaterialTheme.typography.titleMedium)
+            Text(text = cocktail.recipe, style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.height(16.dp))
+            MyTimer(viewModel = timerViewModel)
+        }
     }
 }
+
 
 @Composable
 fun MyTimer(viewModel: TimerViewModel) {
