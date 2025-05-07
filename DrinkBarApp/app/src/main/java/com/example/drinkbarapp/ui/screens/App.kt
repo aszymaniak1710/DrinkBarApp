@@ -1,5 +1,9 @@
 package com.example.drinkbarapp.ui.screens
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -21,13 +25,16 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.drinkbarapp.data.FakeCocktailRepository
+import com.example.drinkbarapp.model.Cocktail
 import com.example.drinkbarapp.ui.components.CocktailDetailScaffold
+import com.example.drinkbarapp.ui.components.CocktailList
 import com.example.drinkbarapp.ui.components.CocktailScreen
 import com.example.drinkbarapp.viewModel.CocktailViewModel
 import com.example.drinkbarapp.viewModel.TimerViewModel
@@ -79,7 +86,10 @@ fun PagerWithDrawerScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val pagerState = rememberPagerState(pageCount = { 3 })
     val coroutineScope = rememberCoroutineScope()
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp
 
+    val isTablet = screenWidthDp > 600
     val drawerItems = listOf(
         "Start" to 0,
         "Short drinks" to 1,
@@ -132,28 +142,84 @@ fun PagerWithDrawerScreen(
                 )
             }
         ) { innerPadding ->
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.padding(innerPadding)
-            ) { page ->
-                when (page) {
-                    0 -> Text("Strona początkowa", modifier = Modifier.padding(32.dp))
-                    1 -> CocktailScreen(
-                        category = "short",
-                        cocktailViewModel = cocktailViewModel,
-                        timerViewModel = timerViewModel,
-                        onCocktailSelected = { cocktail ->
-                            navController.navigate("cocktail/${cocktail.id}")
+            var selectedCocktail by remember { mutableStateOf<Cocktail?>(null) }
+            if (!isTablet)
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.padding(innerPadding)
+                ) { page ->
+                    when (page) {
+                        0 -> Text("Strona początkowa", modifier = Modifier.padding(32.dp))
+                        1 -> {
+                            CocktailScreen(
+                                category = "Szybkie",
+                                cocktailViewModel = cocktailViewModel,
+                                timerViewModel = timerViewModel,
+                                onCocktailSelected = { cocktail ->
+                                    navController.navigate("cocktail/${cocktail.id}")
+                                }
+                            )
                         }
-                    )
-                    2 -> CocktailScreen(
-                        category = "long",
-                        cocktailViewModel = cocktailViewModel,
-                        timerViewModel = timerViewModel,
-                        onCocktailSelected = { cocktail ->
-                            navController.navigate("cocktail/${cocktail.id}")
+                        2 -> CocktailScreen(
+                            category = "Długie",
+                            cocktailViewModel = cocktailViewModel,
+                            timerViewModel = timerViewModel,
+                            onCocktailSelected = { cocktail ->
+                                navController.navigate("cocktail/${cocktail.id}")
+                            }
+                        )
+                    }
+                }
+            else {
+                Row(modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                ) {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                    ) { page ->
+                        when (page) {
+                            0 -> Text(
+                                "Strona początkowa (tablet)",
+                                modifier = Modifier.padding(32.dp)
+                            )
+
+                            1 -> CocktailList(
+                                category = "Szybkie",
+                                onCocktailSelected = { cocktail ->
+                                    cocktailViewModel.selectCocktail(cocktail)
+                                }
+                            )
+
+                            2 -> CocktailList(
+                                category = "Długie",
+                                onCocktailSelected = { cocktail ->
+                                    cocktailViewModel.selectCocktail(cocktail)
+                                }
+                            )
                         }
-                    )
+                    }
+
+
+
+                        CocktailList(
+                            onCocktailSelected = { cocktail ->
+                                cocktailViewModel.selectCocktail(cocktail)
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                        selectedCocktail?.let {
+                            CocktailDetailScaffold(cocktail = selectedCocktail, modifier = Modifier.weight(1f), timerViewModel = timerViewModel)
+                        } ?: run {
+                            Box(modifier = Modifier.weight(1f)) {
+                                Text(text = "Wybierz koktajl", style = MaterialTheme.typography.bodyLarge)
+                            }
+                        }
+
+
                 }
             }
         }

@@ -5,5 +5,6 @@ data class Cocktail(
     val name: String,
     val category: String,
     val ingredients: String,
-    val recipe: String
+    val recipe: String,
+    val imageRes: Int
 )
