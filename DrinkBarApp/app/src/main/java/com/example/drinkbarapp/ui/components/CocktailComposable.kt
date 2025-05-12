@@ -1,6 +1,8 @@
 package com.example.drinkbarapp.ui.components
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import com.example.drinkbarapp.viewModel.CocktailViewModel
@@ -8,6 +10,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +26,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -36,16 +41,20 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -56,9 +65,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -100,7 +112,11 @@ fun CocktailList(
                     modifier = Modifier
                         .padding(8.dp)
                         .fillMaxWidth()
-                        .clickable { onCocktailSelected(cocktail) }
+                        .clickable { onCocktailSelected(cocktail) },
+                            colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
                 ) {
                     Column(
                         modifier = Modifier
@@ -136,64 +152,105 @@ fun CocktailDetailScaffold(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {}
 ) {
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val context = LocalContext.current
+    val topAppBarState = rememberTopAppBarState()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
+    val barHeight = TopAppBarDefaults.LargeAppBarExpandedHeight + 50.dp
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
+            LargeTopAppBar(
+                expandedHeight = barHeight,
                 title = {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                     ) {
-                        Image(
-                            painter = painterResource(id = cocktail.imageRes),
-                            contentDescription = cocktail.name,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .fillMaxSize()
-                        )
                         Text(
                             text = cocktail.name,
-                            style = MaterialTheme.typography.headlineSmall.copy(color = Color.White),
                             modifier = Modifier
                                 .align(Alignment.CenterStart)
                                 .padding(start = 16.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.background,
+                                    shape = RoundedCornerShape(70)
+                                )
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
                         )
                     }
                 },
                 navigationIcon = {
-                    if (displayBackButton){
-                        IconButton(onClick = onBackClick) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Wróć", tint = Color.Black)
+                    if (displayBackButton) {
+                        IconButton(
+                            onClick = onBackClick,
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.background,
+                                    shape = CircleShape
+                                )
+                                .size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Wróć"
+                            )
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-                modifier = Modifier.height(200.dp) // zwiększamy wysokość AppBara na potrzeby obrazka
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
+                scrollBehavior = scrollBehavior
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    Toast.makeText(
-                        context,
-                        "Wysyłam SMS ze składnikami:\n${cocktail.ingredients}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    val smsUri = Uri.parse("smsto:")
+                    val intent = Intent(Intent.ACTION_SENDTO, smsUri).apply {
+                        putExtra("sms_body", "Składniki koktajlu:\n${cocktail.ingredients}")
+                    }
+
+                    val packageManager = context.packageManager
+                    if (intent.resolveActivity(packageManager) != null) {
+                        context.startActivity(intent)
+                    } else {
+                        Toast.makeText(context, "Brak aplikacji do wysyłania SMS", Toast.LENGTH_LONG).show()
+                    }
                 }
             ) {
                 Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Wyślij SMS")
             }
         }
     ) { innerPadding ->
+        val scrollState = rememberScrollState()
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(barHeight + 40.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painterResource(id = cocktail.imageRes),
+                contentDescription = "Android logo",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .layout { measurable, constraints ->
+                        val placeable = measurable.measure(constraints)
+                        layout(placeable.width, placeable.height) {
+                            placeable.place(0, topAppBarState.heightOffset.toInt())
+                        }
+                    }
+                    .fillMaxWidth()
+            )
+        }
+
+
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .padding(16.dp)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "Składniki:", style = MaterialTheme.typography.titleMedium)

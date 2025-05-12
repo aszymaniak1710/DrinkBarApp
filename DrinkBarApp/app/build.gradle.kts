@@ -40,10 +40,11 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.material3.window.size.class1)
-    implementation(libs.navigation.compose)
-    implementation(libs.accompanist.pager)
-    implementation(libs.androidx.navigation.compose)
+    implementation(platform("androidx.compose:compose-bom:2025.01.01"))
+    implementation("androidx.compose.material3:material3-window-size-class:1.3.2")
+    implementation("androidx.navigation:navigation-compose:2.9.0")
+    implementation("com.google.accompanist:accompanist-pager:0.34.0")
+    implementation("com.google.accompanist:accompanist-pager-indicators:0.34.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -52,8 +53,6 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

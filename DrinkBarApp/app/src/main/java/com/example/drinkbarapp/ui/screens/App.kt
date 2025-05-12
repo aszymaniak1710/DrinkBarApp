@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
@@ -45,7 +46,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun App(
     cocktailViewModel: CocktailViewModel,
-    timerViewModel: TimerViewModel
+    timerViewModel: TimerViewModel,
+    onToggleTheme: () -> Unit
 ) {
     val navController = rememberNavController()
 
@@ -57,7 +59,8 @@ fun App(
                     MainScreen(
                         navController = navController,
                         cocktailViewModel = cocktailViewModel,
-                        timerViewModel = timerViewModel
+                        timerViewModel = timerViewModel,
+                        onToggleTheme = onToggleTheme
                     )
                 }
                 composable("cocktail/{id}") { backStackEntry ->
@@ -83,7 +86,8 @@ fun App(
 fun MainScreen(
     navController: NavController,
     cocktailViewModel: CocktailViewModel,
-    timerViewModel: TimerViewModel
+    timerViewModel: TimerViewModel,
+    onToggleTheme: () -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val pagerState = rememberPagerState(pageCount = { 3 })
@@ -139,8 +143,8 @@ fun MainScreen(
                         IconButton(onClick = { /* TODO: wyszukiwanie */ }) {
                             Icon(Icons.Default.Search, contentDescription = "Szukaj")
                         }
-                        IconButton(onClick = { /* TODO: więcej opcji */ }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "Więcej opcji")
+                        IconButton(onClick = onToggleTheme) {
+                            Icon(Icons.Default.Face, contentDescription = "Zmiana motywu")
                         }
                     }
                 )

@@ -6,6 +6,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.example.drinkbarapp.ui.screens.App
 import com.example.drinkbarapp.ui.theme.DrinkBarAppTheme
 import com.example.drinkbarapp.viewModel.TimerViewModel
@@ -19,10 +23,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            DrinkBarAppTheme {
+            var isDarkTheme by remember { mutableStateOf(true) }
+
+            DrinkBarAppTheme (darkTheme = isDarkTheme) {
                   App(
                     cocktailViewModel = cocktailViewModel,
-                    timerViewModel = timerViewModel
+                    timerViewModel = timerViewModel,
+                      onToggleTheme = { isDarkTheme = !isDarkTheme }
                   )
             }
         }
