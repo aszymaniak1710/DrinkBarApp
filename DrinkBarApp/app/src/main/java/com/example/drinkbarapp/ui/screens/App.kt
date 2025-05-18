@@ -11,7 +11,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,15 +27,18 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.drinkbarapp.data.FakeCocktailRepository
-import com.example.drinkbarapp.model.Cocktail
 import com.example.drinkbarapp.ui.components.CocktailDetailScaffold
 import com.example.drinkbarapp.ui.components.CocktailList
+import com.example.drinkbarapp.ui.components.SearchScreen
+import com.example.drinkbarapp.ui.components.WelcomePageWithSensorAnimation
+import com.example.drinkbarapp.ui.theme.DrinkBarAppTheme
 import com.example.drinkbarapp.viewModel.CocktailViewModel
 import com.example.drinkbarapp.viewModel.TimerViewModel
 import kotlinx.coroutines.launch
@@ -45,11 +47,12 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(
-    cocktailViewModel: CocktailViewModel,
     timerViewModel: TimerViewModel,
-    onToggleTheme: () -> Unit
+    onToggleTheme: () -> Unit,
+    cocktailViewModel: CocktailViewModel
 ) {
     val navController = rememberNavController()
+
 
     NavHost(
                 navController = navController,
@@ -64,18 +67,27 @@ fun App(
                     )
                 }
                 composable("cocktail/{id}") { backStackEntry ->
-                    val id = backStackEntry.arguments?.getString("id")?.toIntOrNull()
-                    val cocktail = id?.let { FakeCocktailRepository.getCocktailDetails(it) }
-                    if (cocktail != null) {
-                        CocktailDetailScaffold(
-                            displayBackButton = true,
-                            cocktail = cocktail,
-                            timerViewModel = timerViewModel,
-                            onBackClick = { navController.popBackStack() }
-                        )
-                    } else {
-                        Text("Nie znaleziono koktajlu.")
-                    }
+                    backStackEntry.arguments?.getString("id")?.toIntOrNull()?.let { cocktailId ->
+                        val cocktail by cocktailViewModel.getCocktailById(cocktailId).collectAsState(initial = null)
+
+                        cocktail?.let {
+                            CocktailDetailScaffold(
+                                displayBackButton = true,
+                                cocktail = it,
+                                timerViewModel = timerViewModel,
+                                onBackClick = { navController.popBackStack() }
+                            )
+                        }
+                    } ?: Text("Błędne ID koktajlu.")
+                }
+                composable("search") {
+                    SearchScreen(
+                        viewModel = cocktailViewModel,
+                        onCocktailClick = { cocktail ->
+                            cocktailViewModel.selectCocktail(cocktail)
+                            navController.navigate("cocktail/${cocktail.id}")
+                        }
+                    )
                 }
             }
 }
@@ -140,7 +152,9 @@ fun MainScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = { /* TODO: wyszukiwanie */ }) {
+                        IconButton(onClick = {
+                            navController.navigate("search")
+                        }) {
                             Icon(Icons.Default.Search, contentDescription = "Szukaj")
                         }
                         IconButton(onClick = onToggleTheme) {
@@ -158,10 +172,12 @@ fun MainScreen(
                     modifier = Modifier.padding(innerPadding)
                 ) { page ->
                     when (page) {
-                        0 -> Text("Strona początkowa", modifier = Modifier.padding(32.dp))
+                        0 -> WelcomePageWithSensorAnimation()
+
                         1 -> {
                             CocktailList(
                                 category = "Szybkie",
+                                viewModel = cocktailViewModel,
                                 onCocktailSelected = { cocktail ->
                                     navController.navigate("cocktail/${cocktail.id}")
                                 }
@@ -170,6 +186,7 @@ fun MainScreen(
 
                         2 -> CocktailList(
                             category = "Długie",
+                            viewModel = cocktailViewModel,
                             onCocktailSelected = { cocktail ->
                                 navController.navigate("cocktail/${cocktail.id}")
                             }
@@ -189,13 +206,11 @@ fun MainScreen(
                             .fillMaxHeight()
                     ) { page ->
                         when (page) {
-                            0 -> Text(
-                                "Strona początkowa (tablet)",
-                                modifier = Modifier.padding(32.dp)
-                            )
+                            0 -> WelcomePageWithSensorAnimation()
 
                             1 -> CocktailList(
                                 category = "Szybkie",
+                                viewModel = cocktailViewModel,
                                 onCocktailSelected = { cocktail ->
                                     cocktailViewModel.selectCocktail(cocktail)
                                 }
@@ -203,6 +218,7 @@ fun MainScreen(
 
                             2 -> CocktailList(
                                 category = "Długie",
+                                viewModel = cocktailViewModel,
                                 onCocktailSelected = { cocktail ->
                                     cocktailViewModel.selectCocktail(cocktail)
                                 }
