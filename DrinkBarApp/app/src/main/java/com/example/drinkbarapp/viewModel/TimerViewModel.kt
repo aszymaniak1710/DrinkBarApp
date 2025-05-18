@@ -1,11 +1,7 @@
-package com.example.drinkbarapp
+package com.example.drinkbarapp.viewModel
 
 import android.os.CountDownTimer
-import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -53,5 +49,10 @@ class TimerViewModel : ViewModel() {
         val minutes = (millis / 1000) / 60
         val seconds = (millis / 1000) % 60
         return String.format("%02d:%02d", minutes, seconds)
+    }
+
+    fun setInitialTime(seconds: Long) {
+        this.timeLeftInMillis = seconds * 1000
+        _timeLeft.value = formatTime(timeLeftInMillis)
     }
 }
