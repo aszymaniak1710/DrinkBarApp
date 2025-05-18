@@ -27,18 +27,17 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.drinkbarapp.R
 import com.example.drinkbarapp.ui.components.CocktailDetailScaffold
 import com.example.drinkbarapp.ui.components.CocktailList
 import com.example.drinkbarapp.ui.components.SearchScreen
-import com.example.drinkbarapp.ui.components.WelcomePageWithSensorAnimation
-import com.example.drinkbarapp.ui.theme.DrinkBarAppTheme
+import com.example.drinkbarapp.ui.components.WelcomePageWithAnimation
 import com.example.drinkbarapp.viewModel.CocktailViewModel
 import com.example.drinkbarapp.viewModel.TimerViewModel
 import kotlinx.coroutines.launch
@@ -86,7 +85,8 @@ fun App(
                         onCocktailClick = { cocktail ->
                             cocktailViewModel.selectCocktail(cocktail)
                             navController.navigate("cocktail/${cocktail.id}")
-                        }
+                        },
+                        onBackClick = { navController.popBackStack() }
                     )
                 }
             }
@@ -158,7 +158,7 @@ fun MainScreen(
                             Icon(Icons.Default.Search, contentDescription = "Szukaj")
                         }
                         IconButton(onClick = onToggleTheme) {
-                            Icon(Icons.Default.Face, contentDescription = "Zmiana motywu")
+                            Icon(painter = painterResource(id = R.drawable.themeicon), contentDescription = "Zmiana motywu")
                         }
                     }
                 )
@@ -172,7 +172,7 @@ fun MainScreen(
                     modifier = Modifier.padding(innerPadding)
                 ) { page ->
                     when (page) {
-                        0 -> WelcomePageWithSensorAnimation()
+                        0 -> WelcomePageWithAnimation()
 
                         1 -> {
                             CocktailList(
@@ -206,7 +206,7 @@ fun MainScreen(
                             .fillMaxHeight()
                     ) { page ->
                         when (page) {
-                            0 -> WelcomePageWithSensorAnimation()
+                            0 -> WelcomePageWithAnimation()
 
                             1 -> CocktailList(
                                 category = "Szybkie",

@@ -1,32 +1,19 @@
 package com.example.drinkbarapp.ui.components
 
-import android.animation.ObjectAnimator
-import com.example.drinkbarapp.R
-import android.content.Context
+import kotlinx.coroutines.launch
 import android.content.Intent
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
 import android.net.Uri
-import android.view.View
-import android.view.ViewGroup
-import android.view.ViewOutlineProvider
-import android.view.animation.LinearInterpolator
-import android.view.animation.OvershootInterpolator
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -66,40 +53,39 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.node.Ref
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
+import com.example.drinkbarapp.R
 import com.example.drinkbarapp.data.Cocktail
 import com.example.drinkbarapp.viewModel.CocktailViewModel
 import com.example.drinkbarapp.viewModel.TimerViewModel
-import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
+import kotlinx.coroutines.CoroutineScope
+import kotlin.coroutines.CoroutineContext
 
 
 @Composable
@@ -371,42 +357,142 @@ fun IconButtonWithAction(
 }
 
 @Composable
-fun WelcomePageWithSensorAnimation() {
+fun WelcomePageWithAnimation() {
+    val offsetX = remember { Animatable(0f) }
+    val offsetY = remember { Animatable(0f) }
+    val coroutineScope = rememberCoroutineScope()
 
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .padding(32.dp)
+        ) {
+            Text(
+                text = "Witamy w DrinkBar",
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Odkrywaj przepisy i baw się dobrze! Po naszych drinkach będziesz zakręcony jak kolega niżej.",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            Spacer(modifier = Modifier.height(25.dp))
+
+            Image(
+                painter = painterResource(id = R.drawable.crazyman),
+                contentDescription = "Sprężyna",
+                modifier = Modifier.size(80.dp)
+                    .pointerInput(Unit) {
+                        detectDragGestures(
+                            onDrag = { change, dragAmount ->
+                                change.consume()
+                                coroutineScope.launch {
+                                    offsetX.snapTo(offsetX.value + dragAmount.x)
+                                    offsetY.snapTo(offsetY.value + dragAmount.y)
+                                }
+                            },
+                            onDragEnd = {
+                                coroutineScope.launch {
+                                    offsetX.animateTo(
+                                        targetValue = 0f,
+                                        animationSpec = spring(dampingRatio = 0.03f)
+                                    )
+                                }
+                                coroutineScope.launch {
+                                    offsetY.animateTo(
+                                        targetValue = 0f,
+                                        animationSpec = spring(dampingRatio = 0.03f)
+                                    )
+                                }
+                            }
+                        )
+                    }
+                    .offset { IntOffset(offsetX.value.toInt(), offsetY.value.toInt()) }
+            )
+        }
+    }
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen(viewModel: CocktailViewModel, onCocktailClick: (Cocktail) -> Unit) {
+fun SearchScreen(
+    viewModel: CocktailViewModel,
+    onCocktailClick: (Cocktail) -> Unit,
+    onBackClick: () -> Unit
+) {
     var query by remember { mutableStateOf("") }
     val cocktails by viewModel.searchResults.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        OutlinedTextField(
-            value = query,
-            onValueChange = {
-                query = it
-                viewModel.searchCocktails(it)
-            },
-            label = { Text("Szukaj drinka...") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        LazyColumn {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = {
+                            query = it
+                            viewModel.searchCocktails(it)
+                        },
+                        placeholder = { Text("Szukaj drinka...") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(end = 8.dp),
+                        singleLine = true,
+                        leadingIcon = {
+                            Icon(Icons.Default.Search, contentDescription = null)
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            cursorColor = MaterialTheme.colorScheme.primary,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        )
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Wróć",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            contentPadding = innerPadding,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
             items(cocktails.size) { index ->
                 ListItem(
                     headlineContent = { Text(cocktails[index].name) },
-                    supportingContent = {
-                        Text(cocktails[index].ingredients)
-                    },
-                    modifier = Modifier.clickable { onCocktailClick(cocktails[index]) }
+                    supportingContent = { Text(cocktails[index].ingredients) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onCocktailClick(cocktails[index]) }
                 )
                 Divider()
             }
