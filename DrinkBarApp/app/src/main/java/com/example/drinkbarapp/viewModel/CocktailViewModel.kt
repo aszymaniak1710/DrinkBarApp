@@ -18,17 +18,9 @@ class CocktailViewModel(private val repository: CocktailRepository) : ViewModel(
     fun getCocktailsByCategory(category: String): Flow<List<Cocktail>> =
         repository.getCocktailsByCategory(category)
 
-    fun getCocktailsByKeyword(keyword: String): Flow<List<Cocktail>> =
-        repository.getCocktailsByKeyword(keyword)
-
     fun getCocktailById(id: Int): Flow<Cocktail> =
         repository.getCocktailById(id)
 
-    fun insertCocktails(cocktails: List<Cocktail>) {
-        viewModelScope.launch {
-            repository.insertCocktails(cocktails)
-        }
-    }
     private val _selectedCocktail = MutableStateFlow<Cocktail?>(null)
     val selectedCocktail: StateFlow<Cocktail?> = _selectedCocktail
 

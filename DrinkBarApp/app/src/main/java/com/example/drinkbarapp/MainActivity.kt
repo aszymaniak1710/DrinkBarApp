@@ -8,6 +8,7 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -34,15 +35,15 @@ class MainActivity : ComponentActivity() {
         val repository = CocktailRepository(database.cocktailDao())
         val viewModelFactory = CocktailViewModelFactory(repository)
 
-//        lifecycleScope.launch {
-//            repository.insertCocktails(FakeCocktailRepository.getAllCocktails())
-//        }
+        lifecycleScope.launch {
+            repository.insertCocktails(FakeCocktailRepository.getAllCocktails())
+        }
 
         enableEdgeToEdge()
         setContent {
             val viewModel: CocktailViewModel = viewModel(factory = viewModelFactory)
 
-            var isDarkTheme by remember { mutableStateOf(true) }
+            var isDarkTheme by rememberSaveable  { mutableStateOf(true) }
 
             DrinkBarAppTheme (darkTheme = isDarkTheme) {
                   App(

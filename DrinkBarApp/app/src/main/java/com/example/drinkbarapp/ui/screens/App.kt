@@ -74,7 +74,7 @@ fun App(
                                 displayBackButton = true,
                                 cocktail = it,
                                 timerViewModel = timerViewModel,
-                                onBackClick = { navController.popBackStack() }
+                                onBackClick = { navController.navigate("main") }
                             )
                         }
                     } ?: Text("Błędne ID koktajlu.")
