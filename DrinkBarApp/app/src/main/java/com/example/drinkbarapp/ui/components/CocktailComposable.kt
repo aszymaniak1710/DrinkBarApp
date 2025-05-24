@@ -3,10 +3,8 @@ package com.example.drinkbarapp.ui.components
 import kotlinx.coroutines.launch
 import android.content.Intent
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -47,6 +45,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
@@ -84,8 +83,6 @@ import com.example.drinkbarapp.R
 import com.example.drinkbarapp.data.Cocktail
 import com.example.drinkbarapp.viewModel.CocktailViewModel
 import com.example.drinkbarapp.viewModel.TimerViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlin.coroutines.CoroutineContext
 
 
 @Composable
@@ -159,7 +156,6 @@ fun CocktailDetailScaffold(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {}
 ) {
-    val context = LocalContext.current
     val topAppBarState = rememberTopAppBarState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
     val barHeight = TopAppBarDefaults.LargeAppBarExpandedHeight + 50.dp
@@ -211,24 +207,11 @@ fun CocktailDetailScaffold(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    val smsUri = Uri.parse("smsto:")
-                    val intent = Intent(Intent.ACTION_SENDTO, smsUri).apply {
-                        putExtra("sms_body", "Składniki koktajlu:\n${cocktail.ingredients}")
-                    }
-
-                    val packageManager = context.packageManager
-                    if (intent.resolveActivity(packageManager) != null) {
-                        context.startActivity(intent)
-                    } else {
-                        Toast.makeText(context, "Brak aplikacji do wysyłania SMS", Toast.LENGTH_LONG).show()
-                    }
-                }
-            ) {
-                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Wyślij SMS")
-            }
-        }
+            SendIngredientsFab(
+                phoneNumber = "",
+                ingredients = cocktail.ingredients
+            )
+        },
     ) { innerPadding ->
         val scrollState = rememberScrollState()
         Box(
@@ -500,6 +483,28 @@ fun SearchScreen(
     }
 }
 
+@Composable
+fun SendIngredientsFab(
+    phoneNumber: String,
+    ingredients: String
+) {
+    val context = LocalContext.current
+    FloatingActionButton(
+        onClick = {
+            val smsBody = "Składniki: $ingredients"
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = Uri.parse("sms:$phoneNumber")
+                putExtra("sms_body", smsBody)
+            }
+            context.startActivity(intent)
+        },
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = Color.White,
+        elevation = FloatingActionButtonDefaults.elevation(8.dp)
+    ) {
+        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Wyślij SMS")
+    }
+}
 
 
 
